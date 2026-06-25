@@ -194,7 +194,9 @@ def chart_B_adoption(by_country):
     for g, v in zip(df["geo"], df["value"]):
         ax.text(v + 0.4, g, f"{v:.0f}", va="center", ha="left", fontsize=8)
     if eu_val is not None:
-        ax.axvline(eu_val, color="#34495e", ls="--", lw=1.3, zorder=4)
+        # zorder 2 keeps the reference line above the bars but BELOW the value
+        # labels (text zorder 3), so it never obscures a number
+        ax.axvline(eu_val, color="#34495e", ls="--", lw=1.3, zorder=2)
         # label sits in the empty space to the right of the line, low down
         # (short bars there), so it never touches a bar
         ax.text(eu_val + 0.5, 3.0, f"EU-27\navg {eu_val:.1f}%", color="#34495e",
@@ -304,9 +306,10 @@ def chart_C_models(df):
     ax.set_xlabel(f"Notable AI models released, {year}")
     ax.set_title("Europe barely builds frontier AI\n"
                  f"Notable AI models by country, {year}", fontweight="bold")
-    ax.annotate("all of Europe: 2", xy=(2, "Europe"), xytext=(28, "Hong Kong"),
-                fontsize=9, color=C_EUR, fontweight="bold",
-                arrowprops=dict(arrowstyle="->", color=C_EUR, lw=1.2))
+    # callout sits on the Europe row, well clear of the "2" value label, with a
+    # left-arrow glyph instead of a drawn line (so nothing crosses the number)
+    ax.text(4.5, "Europe", "←  all of Europe", color=C_EUR, fontsize=9.5,
+            fontweight="bold", va="center", ha="left")
     fig.text(0.01, 0.005, "Source: Epoch AI via Stanford AI Index 2026 (Fig 1.1.1–1.1.2). "
              "US \\$286bn buys 59 models; Europe's ~\\$21bn, 2.", fontsize=7.5,
              style="italic", color="#555")
@@ -460,11 +463,10 @@ def chart_G_talent(df):
     ax.set_xlabel("Net AI talent migration, 2025 (per 10,000 LinkedIn members)")
     ax.set_title("Europe's big economies barely attract AI talent\n"
                  "Net AI talent inflow, 2025 (top 15)", fontweight="bold")
-    # annotate the brain-drain nuance on the big EU economies
-    ax.annotate("major EU economies\nbarely attract talent",
-                xy=(df.loc[df['country']=='Germany','net_per_10k'].squeeze(), "Germany"),
-                xytext=(2.4, "Hong Kong"), fontsize=8.5, color="#c0392b",
-                arrowprops=dict(arrowstyle="->", color="#c0392b", lw=1))
+    # callout in clear space beside the bottom (big-EU) bars; no drawn line, so
+    # it never crosses a value label
+    ax.text(1.5, "Denmark", "major EU economies (DE, ES)\nbarely attract talent",
+            color="#c0392b", fontsize=8.5, va="center", ha="left")
     fig.text(0.01, 0.005, "Source: LinkedIn via Stanford AI Index 2026 (Fig 4.4.23). "
              "The US still imports talent but its inflow fell 89% since 2017; Europe holds "
              "talent (Ireland, Finland, Estonia, Germany rank high on concentration) yet attracts little.",
