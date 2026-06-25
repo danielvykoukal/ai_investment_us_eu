@@ -1,0 +1,326 @@
+#!/usr/bin/env python3
+"""
+AI investment, EU vs US — STEP 2: figures
+=========================================
+
+Reads the tidy CSVs written by 01_collect_data.py and draws every chart into
+./figures. It does NO downloading: it only reads ./data and writes ./figures, so
+it is fully reproducible offline once step 1 has run. Each chart is skipped (with
+a message) if its input CSV is missing.
+
+Charts:
+  A   Private AI investment by geography, 2025 (bar)        -> the funding gap
+  A2  US vs Europe vs China, 2023-2025 (lines)              -> the gap widening
+  B   AI adoption by EU country, latest year (bar)          -> the adoption map
+  B2  AI adoption over time, EU-27 + spread (lines)         -> rising off a low base
+  B3  AI adoption by firm size, EU-27 (bar)                 -> the SME gap
+
+Run
+---
+    python 02_make_figures.py
+"""
+
+import os
+import warnings
+
+warnings.filterwarnings("ignore")
+
+import pandas as pd
+import numpy as np
+import matplotlib
+matplotlib.use("Agg")  # no display needed; we save PNGs
+import matplotlib.pyplot as plt
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+DATA = os.path.join(HERE, "data")
+FIG = os.path.join(HERE, "figures")
+os.makedirs(FIG, exist_ok=True)
+
+# Editorial grouping for colour-coding the adoption map (refine before
+# publishing). "North-West" = Nordic + Western Europe; everyone else (Southern +
+# Eastern, incl. the Baltics) is the other group. Estonia sits in "other" yet
+# scores high — a nice exception to point out in the text.
+NORTH_WEST = {"DK", "FI", "SE", "BE", "NL", "LU", "AT", "DE", "IE", "FR"}
+
+# Shared palette with the sibling project.
+C_US = "#1f4e79"     # United States (dark blue)
+C_EU = "#2e86c1"     # EU members (blue)
+C_UK = "#e67e22"     # United Kingdom (orange)
+C_CN = "#c0392b"     # China (red)
+C_OTHER = "#bdc3c7"  # rest of world (grey)
+
+plt.rcParams.update({
+    "figure.dpi": 150, "savefig.dpi": 150, "font.size": 11,
+    "axes.spines.top": False, "axes.spines.right": False,
+    "axes.grid": True, "grid.alpha": 0.25,
+})
+
+
+def _read(name):
+    """Read a CSV from ./data, or None if it does not exist."""
+    p = os.path.join(DATA, name)
+    return pd.read_csv(p) if os.path.exists(p) else None
+
+
+def _spread_labels(items, min_gap):
+    """Stop end-of-line labels overlapping: given [(key, y), ...], push values
+    upward so consecutive labels are at least `min_gap` apart. Returns {key: y}."""
+    out, prev = {}, -1e18
+    for k, y in sorted(items, key=lambda t: t[1]):
+        y = max(y, prev + min_gap)
+        out[k] = y
+        prev = y
+    return out
+
+
+# ----------------------------------------------------------------------------
+# A) Private AI investment by geography, 2025 (bar)
+# ----------------------------------------------------------------------------
+def chart_A_investment(by_geo):
+    """Horizontal bar of 2025 private AI investment. The US bar runs off the
+    field on purpose — that IS the story. EU members, the UK, China and the rest
+    are colour-coded so the 'EU vs US vs UK' split is legible despite the scale."""
+    df = by_geo.sort_values("investment_usd_bn", ascending=True)
+    year = int(df["year"].iloc[0])
+
+    def color(c):
+        if c == "United States":
+            return C_US
+        if c == "United Kingdom":
+            return C_UK
+        if c == "China":
+            return C_CN
+        if c in {"France", "Germany", "Belgium", "Sweden", "Netherlands",
+                 "Spain", "Italy", "Ireland", "Finland", "Denmark"}:
+            return C_EU
+        return C_OTHER
+
+    colors = [color(c) for c in df["country"]]
+    fig, ax = plt.subplots(figsize=(9, 7))
+    ax.barh(df["country"], df["investment_usd_bn"], color=colors)
+    for c, v in zip(df["country"], df["investment_usd_bn"]):
+        ax.text(v + 3, c, f"{v:,.1f}", va="center", ha="left", fontsize=8.5)
+    ax.set_xlim(0, df["investment_usd_bn"].max() * 1.12)
+    ax.set_xlabel("Private AI investment (US$ billions)")
+    ax.set_title(f"The US doesn't lead AI funding — it laps the field\n"
+                 f"Private AI investment by geography, {year}", fontweight="bold")
+    # legend via dummy handles
+    for lab, col in [("United States", C_US), ("EU member", C_EU),
+                     ("United Kingdom", C_UK), ("China", C_CN), ("Other", C_OTHER)]:
+        ax.scatter([], [], color=col, marker="s", s=60, label=lab)
+    ax.legend(loc="lower right", frameon=True, framealpha=0.9, fontsize=9)
+    fig.text(0.01, 0.005, "Source: Stanford HAI AI Index 2026 (data: Quid). "
+             "US ≈ 23× China and 48× the UK.", fontsize=7.5, style="italic", color="#555")
+    fig.tight_layout()
+    fig.savefig(os.path.join(FIG, "A_investment_by_geo.png"), bbox_inches="tight")
+    plt.close(fig)
+    print("  saved figures/A_investment_by_geo.png")
+
+
+# ----------------------------------------------------------------------------
+# A2) US vs Europe vs China over time (lines)
+# ----------------------------------------------------------------------------
+def chart_A2_gap(trend):
+    """Three lines, 2023-2025. The US curve goes vertical while Europe and China
+    stay pinned near the floor — the gap is widening, not closing."""
+    t = trend.sort_values("year")
+    fig, ax = plt.subplots(figsize=(8.5, 5.8))
+    series = [("United States", C_US), ("Europe", C_EU), ("China", C_CN)]
+    last = t["year"].iloc[-1]
+    label_y = _spread_labels([(n, float(t[n].iloc[-1])) for n, _ in series],
+                             min_gap=t["United States"].max() * 0.07)
+    for name, col in series:
+        ax.plot(t["year"], t[name], marker="o", lw=2.6, color=col, zorder=5)
+        ax.text(last + 0.06, label_y[name], f"{name}\n${t[name].iloc[-1]:,.0f}bn",
+                color=col, fontsize=9, va="center", ha="left", fontweight="bold")
+    ax.set_xticks(list(t["year"]))
+    ax.set_xlim(t["year"].min() - 0.1, t["year"].max() + 0.9)
+    ax.set_ylabel("Private AI investment (US$ billions)")
+    ax.set_title("The transatlantic AI-funding gap is exploding\n"
+                 "Private AI investment, US vs Europe vs China", fontweight="bold")
+    fig.text(0.01, -0.01, "Source: Stanford HAI AI Index (2024/25/26). "
+             "'Europe' is the AI Index regional line and includes the UK; "
+             "pre-2024 is an earlier report vintage.", fontsize=7.5,
+             style="italic", color="#555")
+    fig.tight_layout()
+    fig.savefig(os.path.join(FIG, "A2_investment_gap.png"), bbox_inches="tight")
+    plt.close(fig)
+    print("  saved figures/A2_investment_gap.png")
+
+
+# ----------------------------------------------------------------------------
+# B) AI adoption by EU country (bar)
+# ----------------------------------------------------------------------------
+def chart_B_adoption(by_country):
+    """Horizontal bar of AI adoption for every EU member, coloured North-West vs
+    the rest, with the EU-27 average marked."""
+    df = by_country.copy()
+    eu = df.loc[df["geo"] == "EU27_2020", "value"]
+    eu_val = float(eu.iloc[0]) if len(eu) else None
+    year = int(df["year"].iloc[0])
+    df = df[df["geo"].isin(  # members only on the bars; aggregates become a line
+        set(by_country["geo"]) - {"EU27_2020", "EA"})]
+    df = df.sort_values("value", ascending=True)
+    colors = [C_EU if g in NORTH_WEST else C_CN for g in df["geo"]]
+
+    fig, ax = plt.subplots(figsize=(8, 8.5))
+    ax.barh(df["geo"], df["value"], color=colors)
+    for g, v in zip(df["geo"], df["value"]):
+        ax.text(v + 0.4, g, f"{v:.0f}", va="center", ha="left", fontsize=8)
+    if eu_val is not None:
+        ax.axvline(eu_val, color="#34495e", ls="--", lw=1.3, zorder=4)
+        ax.text(eu_val, len(df) - 0.5, f" EU-27 avg {eu_val:.1f}%",
+                color="#34495e", fontsize=8.5, va="top", ha="left")
+    ax.set_xlabel(f"Enterprises using ≥1 AI technology, {year} (% of firms, 10+ employed)")
+    ax.set_title(f"Who actually uses AI? A north–south, west–east split\n"
+                 f"AI adoption by EU country, {year}", fontweight="bold")
+    ax.scatter([], [], color=C_EU, marker="s", s=60, label="Nordic & Western Europe")
+    ax.scatter([], [], color=C_CN, marker="s", s=60, label="Southern & Eastern Europe")
+    ax.legend(loc="lower right", frameon=True, framealpha=0.9, fontsize=9)
+    fig.text(0.01, 0.005, "Source: Eurostat isoc_eb_ai (E_AI_TANY). "
+             "Estonia (EE) sits in the East yet scores high.", fontsize=7.5,
+             style="italic", color="#555")
+    fig.tight_layout()
+    fig.savefig(os.path.join(FIG, "B_adoption_by_country.png"), bbox_inches="tight")
+    plt.close(fig)
+    print("  saved figures/B_adoption_by_country.png")
+
+
+# ----------------------------------------------------------------------------
+# B2) AI adoption over time (lines)
+# ----------------------------------------------------------------------------
+def chart_B2_trend(trend):
+    """EU-27 (thick) plus a country spread. The 2023->2024 step is partly a
+    survey-definition change, so it is shaded and annotated."""
+    fig, ax = plt.subplots(figsize=(9, 5.8))
+    palette = {"EU27_2020": "#111111", "DK": C_US, "SE": "#16a085", "DE": C_EU,
+               "ES": "#8e44ad", "FR": "#2980b9", "IT": "#d35400",
+               "PL": "#c0392b", "RO": "#7f8c8d"}
+    ends = []  # (geo, last_value) for decluttered end labels
+    for geo, d in trend.groupby("geo"):
+        d = d.sort_values("year")
+        is_eu = geo == "EU27_2020"
+        ax.plot(d["year"], d["value"], marker="o", ms=4,
+                lw=3.2 if is_eu else 1.6,
+                color=palette.get(geo, "#999"), zorder=6 if is_eu else 4)
+        ends.append((geo, float(d["value"].iloc[-1])))
+
+    last = max(trend["year"])
+    label_y = _spread_labels(ends, min_gap=(trend["value"].max() * 0.032))
+    for geo, _ in ends:
+        is_eu = geo == "EU27_2020"
+        ax.text(last + 0.08, label_y[geo], "EU-27" if is_eu else geo,
+                fontsize=8.5, va="center", color=palette.get(geo, "#999"),
+                fontweight="bold" if is_eu else "normal")
+
+    # mark the 2023->2024 definition break
+    ax.axvspan(2023, 2024, color="#5d6d7e", alpha=0.08, zorder=0)
+    ax.text(2023.5, ax.get_ylim()[1] * 0.98, "survey definition\nbroadened",
+            ha="center", va="top", fontsize=7.5, color="#5d6d7e")
+
+    years = sorted(trend["year"].unique())
+    ax.set_xticks(years)
+    ax.set_xlim(min(years) - 0.1, max(years) + 0.8)
+    ax.set_ylabel("Enterprises using ≥1 AI technology (% of firms, 10+)")
+    ax.set_title("AI adoption is climbing fast — but off a low base\n"
+                 "Share of EU enterprises using AI", fontweight="bold")
+    fig.text(0.01, -0.01, "Source: Eurostat isoc_eb_ai (E_AI_TANY, 10+ employed). "
+             "The 2023→2024 jump is partly a definition change; 2024→2025 is clean.",
+             fontsize=7.5, style="italic", color="#555")
+    fig.tight_layout()
+    fig.savefig(os.path.join(FIG, "B2_adoption_trend.png"), bbox_inches="tight")
+    plt.close(fig)
+    print("  saved figures/B2_adoption_trend.png")
+
+
+# ----------------------------------------------------------------------------
+# B3) AI adoption by firm size (bar)
+# ----------------------------------------------------------------------------
+def chart_B3_firmsize(fs):
+    labels = {"10-49": "Small\n(10–49)", "50-249": "Medium\n(50–249)",
+              "GE250": "Large\n(250+)"}
+    fs = fs.copy()
+    fs["lab"] = fs["size_emp"].map(labels).fillna(fs["size_emp"])
+    year = int(fs["year"].iloc[0])
+    colors = ["#aed6f1", "#5dade2", C_US]
+    fig, ax = plt.subplots(figsize=(7, 5))
+    ax.bar(fs["lab"], fs["value"], color=colors[:len(fs)])
+    for i, v in enumerate(fs["value"]):
+        ax.text(i, v + 0.7, f"{v:.0f}%", ha="center", fontsize=10, fontweight="bold")
+    ratio = fs["value"].max() / fs["value"].min()
+    ax.set_ylabel("Enterprises using ≥1 AI technology (%)")
+    ax.set_ylim(0, fs["value"].max() * 1.15)
+    ax.set_title(f"AI is still a big-firm technology\n"
+                 f"EU-27 AI adoption by firm size, {year} "
+                 f"(large firms ≈ {ratio:.0f}× small)", fontweight="bold")
+    fig.text(0.01, -0.01, "Source: Eurostat isoc_eb_ai (E_AI_TANY).",
+             fontsize=7.5, style="italic", color="#555")
+    fig.tight_layout()
+    fig.savefig(os.path.join(FIG, "B3_adoption_by_firmsize.png"), bbox_inches="tight")
+    plt.close(fig)
+    print("  saved figures/B3_adoption_by_firmsize.png")
+
+
+# ----------------------------------------------------------------------------
+# Main
+# ----------------------------------------------------------------------------
+def main():
+    print("=" * 64)
+    print("STEP 2 — drawing figures into ./figures (reads ./data)")
+    print("=" * 64)
+
+    print("\n[A] Private AI investment by geography (bar) ...")
+    try:
+        by_geo = _read("ai_investment_by_geo.csv")
+        if by_geo is None:
+            print("  SKIPPED: ai_investment_by_geo.csv missing.")
+        else:
+            chart_A_investment(by_geo)
+    except Exception as e:
+        print(f"  FAILED: {e}")
+
+    print("\n[A2] US vs Europe vs China over time (lines) ...")
+    try:
+        trend = _read("ai_investment_us_eu_cn.csv")
+        if trend is None:
+            print("  SKIPPED: ai_investment_us_eu_cn.csv missing.")
+        else:
+            chart_A2_gap(trend)
+    except Exception as e:
+        print(f"  FAILED: {e}")
+
+    print("\n[B] AI adoption by EU country (bar) ...")
+    try:
+        by_country = _read("ai_adoption_by_country.csv")
+        if by_country is None:
+            print("  SKIPPED: ai_adoption_by_country.csv missing.")
+        else:
+            chart_B_adoption(by_country)
+    except Exception as e:
+        print(f"  FAILED: {e}")
+
+    print("\n[B2] AI adoption over time (lines) ...")
+    try:
+        trend = _read("ai_adoption_trend.csv")
+        if trend is None:
+            print("  SKIPPED: ai_adoption_trend.csv missing.")
+        else:
+            chart_B2_trend(trend)
+    except Exception as e:
+        print(f"  FAILED: {e}")
+
+    print("\n[B3] AI adoption by firm size (bar) ...")
+    try:
+        fs = _read("ai_adoption_by_firmsize.csv")
+        if fs is None:
+            print("  SKIPPED: ai_adoption_by_firmsize.csv missing.")
+        else:
+            chart_B3_firmsize(fs)
+    except Exception as e:
+        print(f"  FAILED: {e}")
+
+    print("\nDone. See ./figures")
+
+
+if __name__ == "__main__":
+    main()
