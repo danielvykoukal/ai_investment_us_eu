@@ -48,6 +48,32 @@ C_EU = "#2e86c1"     # EU members (blue)
 C_UK = "#e67e22"     # United Kingdom (orange)
 C_CN = "#c0392b"     # China (red)
 C_OTHER = "#bdc3c7"  # rest of world (grey)
+C_KR = "#16a085"     # South Korea (teal)
+C_EUR = "#8e44ad"    # "Europe" aggregate (purple, highlight)
+
+EU_MEMBERS = {"Germany", "France", "Netherlands", "Italy", "Poland", "Spain",
+              "Belgium", "Sweden", "Denmark", "Finland", "Ireland", "Austria",
+              "Luxembourg", "Estonia", "Lithuania", "Cyprus", "Greece",
+              "Portugal", "Czech Republic", "Hungary", "Romania", "Bulgaria",
+              "Slovakia", "Slovenia", "Croatia", "Latvia", "Malta"}
+
+
+def _country_color(c):
+    """One consistent colour scheme for country/region across all charts."""
+    if c == "United States":
+        return C_US
+    if c == "China":
+        return C_CN
+    if c == "South Korea":
+        return C_KR
+    if c == "United Kingdom":
+        return C_UK
+    if c == "Europe":
+        return C_EUR
+    if c in EU_MEMBERS:
+        return C_EU
+    return C_OTHER
+
 
 plt.rcParams.update({
     "figure.dpi": 150, "savefig.dpi": 150, "font.size": 11,
@@ -169,8 +195,10 @@ def chart_B_adoption(by_country):
         ax.text(v + 0.4, g, f"{v:.0f}", va="center", ha="left", fontsize=8)
     if eu_val is not None:
         ax.axvline(eu_val, color="#34495e", ls="--", lw=1.3, zorder=4)
-        ax.text(eu_val, len(df) - 0.5, f" EU-27 avg {eu_val:.1f}%",
-                color="#34495e", fontsize=8.5, va="top", ha="left")
+        # label sits in the empty space to the right of the line, low down
+        # (short bars there), so it never touches a bar
+        ax.text(eu_val + 0.5, 3.0, f"EU-27\navg {eu_val:.1f}%", color="#34495e",
+                fontsize=8.5, va="center", ha="left", fontweight="bold")
     ax.set_xlabel(f"Enterprises using ≥1 AI technology, {year} (% of firms, 10+ employed)")
     ax.set_title(f"Who actually uses AI? A north–south, west–east split\n"
                  f"AI adoption by EU country, {year}", fontweight="bold")
@@ -262,6 +290,192 @@ def chart_B3_firmsize(fs):
 
 
 # ----------------------------------------------------------------------------
+# C) The production gap: notable AI models by country
+# ----------------------------------------------------------------------------
+def chart_C_models(df):
+    df = df.sort_values("models", ascending=True)
+    year = int(df["year"].iloc[0])
+    colors = [_country_color(c) for c in df["country"]]
+    fig, ax = plt.subplots(figsize=(8.5, 5.5))
+    ax.barh(df["country"], df["models"], color=colors)
+    for c, v in zip(df["country"], df["models"]):
+        ax.text(v + 0.6, c, f"{v}", va="center", ha="left", fontsize=9, fontweight="bold")
+    ax.set_xlim(0, df["models"].max() * 1.10)
+    ax.set_xlabel(f"Notable AI models released, {year}")
+    ax.set_title("Europe barely builds frontier AI\n"
+                 f"Notable AI models by country, {year}", fontweight="bold")
+    ax.annotate("all of Europe: 2", xy=(2, "Europe"), xytext=(28, "Hong Kong"),
+                fontsize=9, color=C_EUR, fontweight="bold",
+                arrowprops=dict(arrowstyle="->", color=C_EUR, lw=1.2))
+    fig.text(0.01, 0.005, "Source: Epoch AI via Stanford AI Index 2026 (Fig 1.1.1–1.1.2). "
+             "US \\$286bn buys 59 models; Europe's ~\\$21bn, 2.", fontsize=7.5,
+             style="italic", color="#555")
+    fig.tight_layout()
+    fig.savefig(os.path.join(FIG, "C_models_by_country.png"), bbox_inches="tight")
+    plt.close(fig)
+    print("  saved figures/C_models_by_country.png")
+
+
+# ----------------------------------------------------------------------------
+# C2) Who builds the models: top developers by organization, coloured by origin
+# ----------------------------------------------------------------------------
+def chart_C2_developers(df):
+    df = df.sort_values("models", ascending=True)
+    colors = [_country_color(c) for c in df["country"]]
+    fig, ax = plt.subplots(figsize=(8.5, 8))
+    ax.barh(df["organization"], df["models"], color=colors)
+    for o, v in zip(df["organization"], df["models"]):
+        ax.text(v + 0.2, o, f"{v}", va="center", ha="left", fontsize=8)
+    ax.set_xlim(0, df["models"].max() * 1.12)
+    ax.set_xlabel("Notable AI models released, 2025")
+    ax.set_title("The companies building AI are American or Chinese — none European\n"
+                 "Top AI model developers by organization, 2025", fontweight="bold")
+    for lab, col in [("United States", C_US), ("China", C_CN), ("South Korea", C_KR)]:
+        ax.scatter([], [], color=col, marker="s", s=60, label=lab)
+    ax.legend(loc="lower right", frameon=True, framealpha=0.9, fontsize=9)
+    fig.text(0.01, 0.005, "Source: Epoch AI via Stanford AI Index 2026 (Fig 1.1.6). "
+             "DeepMind counted under Google. No EU firm in the top 20.",
+             fontsize=7.5, style="italic", color="#555")
+    fig.tight_layout()
+    fig.savefig(os.path.join(FIG, "C2_developers_by_origin.png"), bbox_inches="tight")
+    plt.close(fig)
+    print("  saved figures/C2_developers_by_origin.png")
+
+
+# ----------------------------------------------------------------------------
+# D) Europe's paradox: strong in research, absent in production
+# ----------------------------------------------------------------------------
+def chart_D_paradox(df):
+    df = df.sort_values("europe_share_pct", ascending=True)
+    colors = [C_EU if k == "research" else C_CN for k in df["kind"]]
+    fig, ax = plt.subplots(figsize=(8.5, 5.2))
+    ax.barh(df["stage"], df["europe_share_pct"], color=colors)
+    for s, v in zip(df["stage"], df["europe_share_pct"]):
+        ax.text(v + 0.3, s, f"{v:.1f}%", va="center", ha="left", fontsize=9, fontweight="bold")
+    ax.set_xlim(0, max(df["europe_share_pct"]) * 1.18)
+    ax.set_xlabel("Europe's share of the global total (%)")
+    ax.set_title("Europe's paradox: it does the science, not the product\n"
+                 "Europe's share of the global AI pipeline", fontweight="bold")
+    ax.scatter([], [], color=C_EU, marker="s", s=60, label="Research (upstream)")
+    ax.scatter([], [], color=C_CN, marker="s", s=60, label="Production (downstream)")
+    ax.legend(loc="lower right", frameon=True, framealpha=0.9, fontsize=9)
+    fig.text(0.01, -0.01, "Source: Stanford AI Index 2026 — citations Fig 1.6.7, "
+             "publications 1.6.6, patents 1.7.2/1.7.5, models 1.1.2.",
+             fontsize=7.5, style="italic", color="#555")
+    fig.tight_layout()
+    fig.savefig(os.path.join(FIG, "D_europe_paradox.png"), bbox_inches="tight")
+    plt.close(fig)
+    print("  saved figures/D_europe_paradox.png")
+
+
+# ----------------------------------------------------------------------------
+# E) AI's physical backbone: data centers by country
+# ----------------------------------------------------------------------------
+def chart_E_datacenters(df):
+    df = df.sort_values("datacenters", ascending=True)
+    year = int(df["year"].iloc[0])
+    colors = [_country_color(c) for c in df["country"]]
+    fig, ax = plt.subplots(figsize=(9, 6.5))
+    ax.barh(df["country"], df["datacenters"], color=colors)
+    for c, v in zip(df["country"], df["datacenters"]):
+        ax.text(v + 50, c, f"{v:,}", va="center", ha="left", fontsize=8.5)
+    ax.set_xlim(0, df["datacenters"].max() * 1.12)
+    ax.set_xlabel(f"Number of data centers, {year}")
+    ax.set_title("AI's physical backbone is overwhelmingly American\n"
+                 f"Data centers by country, {year}", fontweight="bold")
+    for lab, col in [("United States", C_US), ("EU member", C_EU),
+                     ("United Kingdom", C_UK), ("China", C_CN), ("Other", C_OTHER)]:
+        ax.scatter([], [], color=col, marker="s", s=55, label=lab)
+    ax.legend(loc="lower right", frameon=True, framealpha=0.9, fontsize=8.5)
+    fig.text(0.01, 0.005, "Source: Cloudscene via Stanford AI Index 2026 (Fig 1.3.2). "
+             "Ownership of the stack is also non-European: chips designed by Nvidia (US), "
+             "fabricated by TSMC (Taiwan), memory by SK Hynix/Samsung (Korea).",
+             fontsize=7.0, style="italic", color="#555")
+    fig.tight_layout()
+    fig.savefig(os.path.join(FIG, "E_datacenters_by_country.png"), bbox_inches="tight")
+    plt.close(fig)
+    print("  saved figures/E_datacenters_by_country.png")
+
+
+# ----------------------------------------------------------------------------
+# F) Public money too: government AI spending, US vs Europe
+# ----------------------------------------------------------------------------
+def chart_F_public(df):
+    # Two stacked bars (US by instrument, Europe by country); both sum to the
+    # region total. Segment labels go to the RIGHT of each bar (never on the
+    # bars, never on each other) so nothing is obscured. Bars spaced wide so the
+    # US labels can't reach the Europe bar.
+    fig, ax = plt.subplots(figsize=(8.4, 5.8))
+    specs = [
+        ("United States", 0.0, [("Grants", C_US), ("Contracts", "#2e86c1"),
+                                 ("OTAs", "#85c1e9")]),
+        ("Europe", 2.0, [("United Kingdom", "#1e8449"), ("Germany", "#27ae60"),
+                         ("France", "#52be80"), ("Other Europe", "#a9dfbf")]),
+    ]
+    totals = []
+    for region, x, segs in specs:
+        sub = df[df["region"] == region].set_index("category")["usd_bn"]
+        bottom = 0.0
+        centers = []
+        for cat, col in segs:
+            v = float(sub.get(cat, 0.0))
+            ax.bar(x, v, bottom=bottom, color=col, width=0.6, zorder=3)
+            centers.append((f"{cat}  {v:.2f}", bottom + v / 2))
+            bottom += v
+        totals.append(bottom)
+        ys = _spread_labels(centers, min_gap=max(totals) * 0.052)
+        for lab, y in ys.items():
+            ax.text(x + 0.34, y, lab, va="center", ha="left", fontsize=8, color="#222")
+        ax.text(x, bottom + max(totals) * 0.03, f"${bottom:.1f}bn",
+                ha="center", va="bottom", fontsize=11, fontweight="bold")
+
+    ax.set_xticks([0.0, 2.0])
+    ax.set_xticklabels(["United States", "Europe"])
+    ax.set_xlim(-0.6, 3.3)
+    ax.set_ylabel("Cumulative public AI spending, 2013–24 (US$bn)")
+    ax.set_ylim(0, max(totals) * 1.15)
+    ax.set_title("Even public money flows mostly to US AI\n"
+                 "Government AI spending, US vs Europe (2013–24)", fontweight="bold")
+    fig.text(0.01, -0.02, "Source: Stanford AI Index 2026 (Fig 8.5.1/8.5.8). "
+             "Measured differently (US: FPDS contracts+OTAs+grants; Europe: TED contract "
+             "ceilings) — like-for-like contracts are US ~\\$4.6bn vs Europe ~\\$3.7bn.",
+             fontsize=7.0, style="italic", color="#555")
+    fig.tight_layout()
+    fig.savefig(os.path.join(FIG, "F_public_investment.png"), bbox_inches="tight")
+    plt.close(fig)
+    print("  saved figures/F_public_investment.png")
+
+
+# ----------------------------------------------------------------------------
+# G) AI talent: Europe is a weak magnet (the "brain drain" question)
+# ----------------------------------------------------------------------------
+def chart_G_talent(df):
+    df = df.sort_values("net_per_10k", ascending=True)
+    colors = [_country_color(c) for c in df["country"]]
+    fig, ax = plt.subplots(figsize=(8.5, 6.5))
+    ax.barh(df["country"], df["net_per_10k"], color=colors)
+    for c, v in zip(df["country"], df["net_per_10k"]):
+        ax.text(v + 0.06, c, f"+{v:.2f}", va="center", ha="left", fontsize=8)
+    ax.set_xlim(0, df["net_per_10k"].max() * 1.15)
+    ax.set_xlabel("Net AI talent migration, 2025 (per 10,000 LinkedIn members)")
+    ax.set_title("Europe's big economies barely attract AI talent\n"
+                 "Net AI talent inflow, 2025 (top 15)", fontweight="bold")
+    # annotate the brain-drain nuance on the big EU economies
+    ax.annotate("major EU economies\nbarely attract talent",
+                xy=(df.loc[df['country']=='Germany','net_per_10k'].squeeze(), "Germany"),
+                xytext=(2.4, "Hong Kong"), fontsize=8.5, color="#c0392b",
+                arrowprops=dict(arrowstyle="->", color="#c0392b", lw=1))
+    fig.text(0.01, 0.005, "Source: LinkedIn via Stanford AI Index 2026 (Fig 4.4.23). "
+             "The US still imports talent but its inflow fell 89% since 2017; Europe holds "
+             "talent (Ireland, Finland, Estonia, Germany rank high on concentration) yet attracts little.",
+             fontsize=7.0, style="italic", color="#555")
+    fig.tight_layout()
+    fig.savefig(os.path.join(FIG, "G_talent_migration.png"), bbox_inches="tight")
+    plt.close(fig)
+    print("  saved figures/G_talent_migration.png")
+
+
+# ----------------------------------------------------------------------------
 # Main
 # ----------------------------------------------------------------------------
 def main():
@@ -318,6 +532,24 @@ def main():
             chart_B3_firmsize(fs)
     except Exception as e:
         print(f"  FAILED: {e}")
+
+    for tag, fname, fn in [
+        ("C", "ai_models_by_country.csv", chart_C_models),
+        ("C2", "ai_models_by_org.csv", chart_C2_developers),
+        ("D", "europe_share_pipeline.csv", chart_D_paradox),
+        ("E", "datacenters_by_country.csv", chart_E_datacenters),
+        ("F", "public_ai_investment.csv", chart_F_public),
+        ("G", "talent_net_migration.csv", chart_G_talent),
+    ]:
+        print(f"\n[{tag}] {fn.__name__} ...")
+        try:
+            d = _read(fname)
+            if d is None:
+                print(f"  SKIPPED: {fname} missing.")
+            else:
+                fn(d)
+        except Exception as e:
+            print(f"  FAILED: {e}")
 
     print("\nDone. See ./figures")
 

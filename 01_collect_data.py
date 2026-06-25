@@ -242,6 +242,128 @@ def write_investment_csvs():
 
 
 # ----------------------------------------------------------------------------
+# 3) PRODUCTION, INFRASTRUCTURE, RESEARCH, PUBLIC MONEY & TALENT
+#    All from the Stanford AI Index 2026 full report (hardcoded; VERIFY).
+#    These build out the "Europe researches & uses AI but doesn't build/fund it"
+#    story. Figure numbers given so each can be re-checked / refreshed.
+# ----------------------------------------------------------------------------
+# Notable AI models by national affiliation, 2025 (Epoch AI; Fig 1.1.1/1.1.2).
+# The "Europe" regional line in Fig 1.1.2 = 2 models in 2025.
+MODELS_BY_COUNTRY_2025 = {
+    "United States": 59, "China": 35, "South Korea": 8, "Europe": 2,
+    "Canada": 1, "Singapore": 1, "Hong Kong": 1,
+}
+
+# Notable AI models by organization, 2025 (Fig 1.1.6) -> the massive AI
+# developers and where they are from. DeepMind is counted under Google.
+#   (organization, models, country)
+MODELS_BY_ORG_2025 = [
+    ("OpenAI", 20, "United States"), ("Google", 14, "United States"),
+    ("Alibaba", 11, "China"), ("Anthropic", 7, "United States"),
+    ("xAI", 5, "United States"), ("DeepSeek", 4, "China"),
+    ("LG AI Research", 4, "South Korea"), ("Meta", 4, "United States"),
+    ("Tsinghua University", 4, "China"), ("ByteDance", 3, "China"),
+    ("Moonshot", 3, "China"), ("Nvidia", 3, "United States"),
+    ("University of Illinois", 3, "United States"), ("Z.ai (Zhipu AI)", 3, "China"),
+    ("MiniMax", 2, "China"), ("Shanghai AI Lab", 2, "China"),
+    ("Allen Institute for AI", 1, "United States"), ("Ant Group", 1, "China"),
+    ("Baidu", 1, "China"), ("CUHK Shenzhen", 1, "China"),
+]
+
+# Europe's PARADOX: its share of the global AI pipeline, research -> production.
+# Europe is strong in science, near-absent downstream. (stage, %, kind, source)
+EUROPE_SHARE_PIPELINE = [
+    ("Research citations", 19.5, "research", "Fig 1.6.7 (2024)"),
+    ("Research publications", 11.1, "research", "Fig 1.6.6 (2024)"),
+    ("Patent citations", 4.2, "production", "Fig 1.7.5 (2010-24)"),
+    ("Patents granted", 3.0, "production", "Fig 1.7.2 (2024)"),
+    ("Notable AI models", 2.0, "production", "Fig 1.1.2 (2025; 2 of 102)"),
+]
+
+# AI research output by region (supports "AI research is big in Europe").
+#   region, publications %, citations %   (2024; Fig 1.6.6 / 1.6.7)
+RESEARCH_BY_REGION = [
+    ("China", 17.8, 20.6), ("Europe", 11.1, 19.5), ("United States", None, 12.6),
+    ("India", 7.6, None),
+]
+
+# Data centers by country, 2025 (Cloudscene; Fig 1.3.2) -> infrastructure location.
+DATACENTERS_2025 = {
+    "United States": 5427, "Germany": 529, "United Kingdom": 523, "China": 449,
+    "Canada": 337, "France": 322, "Australia": 314, "Netherlands": 298,
+    "Russia": 251, "Japan": 222, "Brazil": 197, "Mexico": 173, "Italy": 168,
+    "India": 153, "Poland": 144,
+}
+
+# Public (government) AI spending, cumulative 2013-24, US$bn.
+# NOTE: US and Europe measured differently (US: contracts+OTAs+grants from FPDS;
+# Europe: awarded contract ceilings from TED). The report presents them
+# SEPARATELY; the only like-for-like comparison is contracts(+OTAs).
+PUBLIC_AI_US = {"Grants": 15.9, "Contracts": 3.9, "OTAs": 0.7}          # Fig 8.5.1/8.5.3
+PUBLIC_AI_EUROPE = {"United Kingdom": 1.6, "Germany": 0.505, "France": 0.320,
+                    "Other Europe": 1.275}                              # Fig 8.5.8 (sum ~3.7)
+
+# AI talent (LinkedIn, 2025). Concentration = % of members; migration = net per 10k.
+TALENT_CONCENTRATION_2025 = {  # Fig 4.4.21 (top 15)
+    "Israel": 2.10, "Singapore": 1.82, "Luxembourg": 1.60, "Ireland": 1.31,
+    "Switzerland": 1.25, "Finland": 1.23, "Estonia": 1.15, "Germany": 1.15,
+    "Netherlands": 1.10, "Lithuania": 1.05, "South Korea": 1.05, "India": 1.01,
+    "Canada": 1.01, "Poland": 1.00, "Cyprus": 0.95,
+}
+TALENT_NET_MIGRATION_2025 = {  # Fig 4.4.23 (top 15 net inflows), per 10k members
+    "Luxembourg": 5.23, "United Arab Emirates": 4.40, "Australia": 1.79,
+    "Saudi Arabia": 1.77, "Switzerland": 1.72, "Singapore": 1.36, "Canada": 1.23,
+    "United States": 1.22, "Hong Kong": 1.14, "United Kingdom": 1.04,
+    "Austria": 0.90, "Cyprus": 0.62, "Denmark": 0.45, "Spain": 0.23, "Germany": 0.17,
+}
+
+
+def write_aiindex_extras():
+    """Materialise the production/infrastructure/research/public/talent figures."""
+    pd.DataFrame({"country": list(MODELS_BY_COUNTRY_2025),
+                  "models": list(MODELS_BY_COUNTRY_2025.values()), "year": 2025}) \
+      .to_csv(os.path.join(DATA, "ai_models_by_country.csv"), index=False)
+
+    pd.DataFrame(MODELS_BY_ORG_2025, columns=["organization", "models", "country"]) \
+      .to_csv(os.path.join(DATA, "ai_models_by_org.csv"), index=False)
+
+    pd.DataFrame(EUROPE_SHARE_PIPELINE,
+                 columns=["stage", "europe_share_pct", "kind", "source"]) \
+      .to_csv(os.path.join(DATA, "europe_share_pipeline.csv"), index=False)
+
+    pd.DataFrame(RESEARCH_BY_REGION,
+                 columns=["region", "publications_pct", "citations_pct"]) \
+      .to_csv(os.path.join(DATA, "research_by_region.csv"), index=False)
+
+    pd.DataFrame({"country": list(DATACENTERS_2025),
+                  "datacenters": list(DATACENTERS_2025.values()), "year": 2025}) \
+      .to_csv(os.path.join(DATA, "datacenters_by_country.csv"), index=False)
+
+    rows = [("United States", k, v) for k, v in PUBLIC_AI_US.items()] \
+         + [("Europe", k, v) for k, v in PUBLIC_AI_EUROPE.items()]
+    pd.DataFrame(rows, columns=["region", "category", "usd_bn"]) \
+      .to_csv(os.path.join(DATA, "public_ai_investment.csv"), index=False)
+
+    pd.DataFrame({"country": list(TALENT_CONCENTRATION_2025),
+                  "concentration_pct": list(TALENT_CONCENTRATION_2025.values())}) \
+      .to_csv(os.path.join(DATA, "talent_concentration.csv"), index=False)
+    pd.DataFrame({"country": list(TALENT_NET_MIGRATION_2025),
+                  "net_per_10k": list(TALENT_NET_MIGRATION_2025.values())}) \
+      .to_csv(os.path.join(DATA, "talent_net_migration.csv"), index=False)
+
+    us_models = sum(v for _, v, c in MODELS_BY_ORG_2025 if c == "United States")
+    cn_models = sum(v for _, v, c in MODELS_BY_ORG_2025 if c == "China")
+    print("  wrote 8 AI-Index extras CSVs (VERIFY before publishing)")
+    print(f"    models 2025: US 59 / China 35 / Europe 2; top-20 orgs are "
+          f"{us_models} US + {cn_models} China + rest, zero EU")
+    us_public = sum(PUBLIC_AI_US.values())
+    eu_public = sum(PUBLIC_AI_EUROPE.values())
+    print(f"    data centers: US {DATACENTERS_2025['United States']:,} vs "
+          f"Germany {DATACENTERS_2025['Germany']}; "
+          f"public AI: US ~${us_public:.1f}bn vs Europe ~${eu_public:.1f}bn")
+
+
+# ----------------------------------------------------------------------------
 # Main
 # ----------------------------------------------------------------------------
 def main():
@@ -270,6 +392,13 @@ def main():
     print("\n[4] AI investment by geography (Stanford AI Index figures) ...")
     try:
         write_investment_csvs()
+    except Exception as e:
+        print(f"  FAILED: {e}")
+
+    print("\n[5] Production, infrastructure, research, public money & talent "
+          "(AI Index 2026) ...")
+    try:
+        write_aiindex_extras()
     except Exception as e:
         print(f"  FAILED: {e}")
 

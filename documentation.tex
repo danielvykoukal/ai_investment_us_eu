@@ -55,7 +55,7 @@
   \end{figure}}
 
 \title{\textbf{AI Investment, EU vs US}\\[2pt]
-       \large Data, Pipeline, and the ``Adopt-vs-Fund'' Gap}
+       \large Who Builds, Funds, and Uses AI --- and Where Europe Fits}
 \author{Project documentation}
 \date{\today}
 
@@ -66,19 +66,23 @@
 \begin{abstract}
 \noindent
 This document explains, step by step, the empirical project behind a single
-claim: \emph{Europe is becoming a consumer of artificial intelligence rather
-than a producer of it.} Two directly observable facts support it. First, European
-firms increasingly \emph{use} AI---adoption has risen steeply since 2023. Second,
-almost none of the private capital that \emph{builds} frontier AI is European:
-investment is overwhelmingly American, and the gap is widening. The document
-covers (i) the reproducible two-stage software pipeline, (ii) every data series
-used, with an explicit justification of its source, frequency, coverage, units,
-and treatment, and (iii) the descriptive charts that carry the argument. The
-project is \emph{descriptive by design}: the thesis is an accounting comparison
-of adoption against investment, not a causal mechanism, so it runs no
-econometrics. Reported figures come from a clean end-to-end run; the adoption
-series is pulled live and may be revised by the provider, and the investment
-figures should be refreshed from the latest report before citation.
+claim: \emph{Europe researches and uses artificial intelligence, but does not
+build, patent, or fund it.} The evidence is a set of directly observable
+quantities. On the \emph{production} side, the United States and China account
+for virtually all frontier AI---models, leading developers, patents, compute,
+and data centres---while Europe is near-absent. On the \emph{research} side,
+Europe is genuinely strong: it is second in the world in AI research citations.
+On the \emph{use} side, European firms and citizens adopt AI heavily and fast.
+The result is a paradox: Europe does the science and the consuming, and even
+leads on trust and regulation, while the capital and the companies that own AI
+sit elsewhere. The document covers (i) the reproducible two-stage pipeline,
+(ii) every data series with its source, units, and treatment, and (iii) the
+eleven descriptive charts that carry the argument. The project is
+\emph{descriptive by design}: these are measured magnitudes, not a latent causal
+channel, so it runs no econometrics. The adoption series is pulled live from
+Eurostat; the production, investment, infrastructure, public-money, and talent
+figures are read from the Stanford AI Index 2026 and should be refreshed each
+report cycle.
 \end{abstract}
 
 \tableofcontents
@@ -91,45 +95,49 @@ figures should be refreshed from the latest report before citation.
 % ============================================================================
 
 \paragraph{Thesis.} A common framing of the EU's position in AI fixates on the
-venture-capital gap with the United States. This project sharpens the point into
-a testable contrast: Europe \emph{adopts} AI without \emph{funding} it. The claim
-breaks into three legs, each mapped to a chart:
+venture-capital gap with the United States. This project widens and sharpens the
+point into a structural contrast across the whole AI value chain. The claim
+breaks into five legs, each mapped to one or more charts:
 \begin{enumerate}[label=(\Alph*)]
-  \item \textbf{Investment.} The money building AI is concentrated in the United
-        States to an extraordinary degree, and the lead is growing, not shrinking
-        (the headline leg).
-  \item \textbf{Adoption.} Yet European \emph{use} of AI is rising fast---the EU
-        is a large and growing customer for AI it largely did not build.
-  \item \textbf{Within-Europe divides.} Both the using and (what little) funding
-        happen unevenly: a north-west/south-east geographic split, and a
-        large-firm/SME split.
+  \item \textbf{Funding.} Private capital for AI is overwhelmingly American, and
+        the lead is \emph{accelerating}, not closing.
+  \item \textbf{Production.} The frontier models, the leading developers, the
+        patents, the data centres, and the chip supply chain are American or
+        Chinese; no European company is among the top model builders.
+  \item \textbf{Research.} Yet Europe is strong \emph{upstream}: it is second in
+        the world in AI research citations and a major publisher. The science is
+        European; the products are not---the project's central paradox.
+  \item \textbf{Use.} European firms and citizens \emph{adopt} AI heavily and
+        fast. Europe is a large, growing customer for AI it did not build.
+  \item \textbf{Within-Europe divides \& talent.} Adoption is uneven (north-west
+        vs south-east; large firms vs SMEs), and Europe's big economies are weak
+        magnets for AI talent even though several hold talent well.
 \end{enumerate}
 
 \paragraph{Why descriptive, not econometric.} The sibling precautionary-saving
-project devotes most of its length to isolating a \emph{latent} causal channel
-(does uncertainty \emph{drive} saving?), because there co-movement is not
-causation. Here the situation is different and simpler: both halves of the thesis
-are \emph{directly measured} quantities---a share of firms using AI, and a flow
-of dollars invested---so the argument is an accounting comparison, not an
-identification problem. There is no hidden variable to recover and nothing to
-instrument. The honest altitude is therefore a small set of clean, well-sourced
-charts; adding a regression would dress up a descriptive claim as a causal one.
-What the project owes the reader instead is rigour about \emph{data provenance
-and comparability}, which Section~\ref{sec:data} supplies.
+project devotes most of its length to isolating a \emph{latent} causal channel,
+because there co-movement is not causation. Here the situation is different:
+every leg above is a \emph{directly measured} quantity---a count of models, a
+flow of dollars, a share of firms, a count of data centres. The argument is an
+accounting comparison across the value chain, not an identification problem.
+There is no hidden variable to recover and nothing to instrument. The honest
+altitude is therefore a set of clean, well-sourced charts; what the project owes
+the reader is rigour about \emph{data provenance and comparability}, which
+Section~\ref{sec:data} supplies.
 
 \paragraph{What the documentation covers.} Section~\ref{sec:pipeline} describes
-the reproducible pipeline. Section~\ref{sec:data} justifies every data choice and
-states the two comparability caveats that matter. Section~\ref{sec:descriptive}
-walks through the five charts. Sections~\ref{sec:interpretation}--%
+the pipeline. Section~\ref{sec:data} justifies every data choice and states the
+comparability caveats that matter. Section~\ref{sec:descriptive} walks through
+the eleven charts in narrative order. Sections~\ref{sec:interpretation}--%
 \ref{sec:limits} synthesise and qualify the findings. The appendix lists the file
-tree, exact commands, and a data dictionary.
+tree, commands, and a data dictionary.
 
 % ============================================================================
 \section{The reproducible pipeline}\label{sec:pipeline}
 % ============================================================================
 
-The project is split into two scripts by \emph{function}, so that each stage can
-be run, audited, and re-run independently. Data collection (slow, network-bound,
+The project is split into two scripts by \emph{function}, so each stage can be
+run, audited, and re-run independently. Data collection (network-bound,
 non-deterministic across vintages) is separated from figure rendering (fast,
 deterministic, offline). There is deliberately no third stage: per
 Section~\ref{sec:overview} the analysis is descriptive.
@@ -140,10 +148,10 @@ Section~\ref{sec:overview} the analysis is descriptive.
 \toprule
 \textbf{Stage / script} & \textbf{Reads} & \textbf{Writes} \\
 \midrule
-\code{01\_collect\_data.py} & Eurostat (live API) + AI Index figures &
-  \code{data/*.csv} (tidy series) \\
+\code{01\_collect\_data.py} & Eurostat (live API) + AI Index 2026 figures &
+  \code{data/*.csv} (15 tidy series) \\
 \code{02\_make\_figures.py} & \code{data/*.csv} &
-  \code{figures/*.png} (charts A--B3) \\
+  \code{figures/*.png} (11 charts, A--G) \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -155,165 +163,193 @@ bash run_all.sh        # pip install, then run 01 -> 02 (classic Python)
 \end{lstlisting}
 
 \paragraph{Classic Python, no virtual environment.} The project runs directly on
-a standard system Python ($\ge 3.11$); there is nothing to create or activate.
-\code{run\_all.sh} installs the requirements into the chosen interpreter
-(\code{python3} by default; override with the \code{PYTHON} variable) and then
-runs the two stages. Dependencies are pinned in \code{requirements.txt} so the
-charts are reproducible across machines. If the default \code{python3} is a
-Homebrew/``externally-managed'' build that refuses a global \code{pip install},
-point \code{PYTHON} at a python.org interpreter or add \code{--user} to the pip
-line.
+a standard system Python ($\ge 3.11$). \code{run\_all.sh} installs the
+requirements into the chosen interpreter (\code{python3} by default; override
+with \code{PYTHON}) and then runs the two stages. Dependencies are pinned in
+\code{requirements.txt}, so the charts are reproducible across machines.
 
 \paragraph{Network robustness.} The adoption data is pulled through the keyless
 \code{eurostat} package. Each pull is wrapped in \code{try/except}: a failed
-source prints a clear message and leaves any CSV from a previous run untouched,
-so a transient outage never corrupts the rest of the dataset. The latest survey
-year is detected automatically from the returned table, so a new Eurostat release
-flows through to the country bar and the firm-size split with no code change.
+source prints a clear message and leaves any CSV from a previous run untouched.
+The latest survey year is detected automatically from the returned table, so a
+new Eurostat release flows through to the country and firm-size charts with no
+code change.
 
 % ============================================================================
 \section{Data}\label{sec:data}
 % ============================================================================
 
-This section answers the ``why this data'' question. For each series we state the
-\emph{source} and exact dataset code, the \emph{frequency} and why it is
-appropriate, the \emph{coverage}, the \emph{units}, and any \emph{transformation}
-and \emph{caveat}. The adoption series is free and keyless; the investment
-figures are public but, as explained below, are not exposed through any free API.
+For each series we state the \emph{source} and dataset code, the \emph{units},
+the \emph{coverage}, and any \emph{transformation} and \emph{caveat}. The
+adoption series is free and keyless; the AI Index figures are public but, as the
+report's underlying data is proprietary (Quid, Epoch AI, etc.), are read from the
+report PDFs and entered as documented constants with their figure numbers---the
+project's one set of ``verify before publishing'' numbers.
 
 % ----------------------------------------------------------------------------
-\subsection{Adoption: AI use by EU enterprises}
+\subsection{Use: AI adoption by EU enterprises}
 % ----------------------------------------------------------------------------
 \begin{description}[leftmargin=1.4em,style=nextline]
-\item[Source / code] Eurostat, \dataset{isoc\_eb\_ai} (``Artificial intelligence
-  by size class of enterprise''), indicator \code{E\_AI\_TANY} (enterprises using
-  at least one of the surveyed AI technologies), unit \code{PC\_ENT}
-  (\% of enterprises), activity \code{C10-S951\_X\_K} (all activities excluding
-  the financial sector). Pulled live.
-\item[Frequency / coverage] Annual, but the module is not run every year:
-  available years are 2021, 2023, 2024, 2025 (no 2022). The latest year drives
-  the country and firm-size charts; all years feed the trend chart.
-\item[Units] Percentage of enterprises with 10 or more persons employed
-  (size class \code{GE10}) using $\ge 1$ AI technology. This is an
-  \emph{extensive} measure---whether a firm uses any AI at all---not an intensity
-  or spending measure.
-\item[Why this exact indicator] \dataset{isoc\_eb\_ai} contains dozens of
-  indicators (by purpose, by technology type, by barrier, by provenance).
-  \code{E\_AI\_TANY} is the single headline ``does the firm use any AI'' switch
-  and the one Eurostat itself reports as the adoption rate; the collector filters
-  to it explicitly rather than blending indicators.
-\item[Caveat: series break] \emph{Eurostat broadened the list of surveyed AI
-  technologies between the 2023 and 2024 waves.} The EU-27 rate jumps from
-  $8.1\%$ (2023) to $13.5\%$ (2024); part of that step is the wider definition,
-  not pure real growth. The $2024\!\to\!2025$ step ($13.5\%\!\to\!19.9\%$) is on
-  the consistent definition and is clean. The trend chart shades the break and
-  the caption flags it.
+\item[Source / code] Eurostat \dataset{isoc\_eb\_ai}, indicator \code{E\_AI\_TANY}
+  (enterprises using at least one AI technology), unit \code{PC\_ENT}, size class
+  \code{GE10} (10+ persons employed). Pulled live.
+\item[Coverage / units] Annual; available years 2021, 2023, 2024, 2025 (no 2022).
+  Percentage of enterprises using $\ge 1$ AI technology---an \emph{extensive}
+  measure (any use), not intensity or spend.
+\item[Caveat: series break] Eurostat broadened the surveyed AI-technology list
+  between the 2023 and 2024 waves; the EU-27 rate jumps $8.1\%\to 13.5\%$, partly
+  a definitional effect. The $2024\to 2025$ step ($13.5\%\to 19.9\%$) is on the
+  consistent definition. The trend chart shades the break.
+\item[Firm size] The same series for \code{EU27\_2020}, split by size classes
+  \code{10-49}, \code{50-249}, \code{GE250}.
 \end{description}
 
 % ----------------------------------------------------------------------------
-\subsection{Adoption by firm size (leg C)}
+\subsection{Funding: private AI investment by region}
 % ----------------------------------------------------------------------------
 \begin{description}[leftmargin=1.4em,style=nextline]
-\item[Source] The same \dataset{isoc\_eb\_ai}/\code{E\_AI\_TANY} series,
-  geography \code{EU27\_2020}, broken out by the size classes \code{10-49}
-  (small), \code{50-249} (medium), and \code{GE250} (large).
-\item[Why] AI adoption is sharply increasing in firm size; the small/large
-  contrast is the cleanest within-EU statement of the ``who actually uses it''
-  question, and is robust (a single country-free EU aggregate).
+\item[Source] Stanford AI Index (2024/25/26 editions); underlying data Quid.
+  Current-USD private investment.
+\item[Views] (i) cross-country bar, 2025 (Fig.~4.2.8); (ii) US/Europe/China
+  anchor path 2023--25 (Figs.~4.3.10, 4.2.11); (iii) cumulative 2013--25
+  (Fig.~4.2.12); (iv) generative-AI split (Fig.~4.2.10).
+\item[Caveat] ``Europe'' is the AI Index regional line and \emph{includes the
+  UK}; the report publishes no clean EU-27 aggregate. China's private figure
+  excludes state ``guidance funds'' (an estimated US\$184\,bn, 2000--2023).
 \end{description}
 
 % ----------------------------------------------------------------------------
-\subsection{Investment: private AI funding by region (legs A)}
+\subsection{Production: notable models and developers}
 % ----------------------------------------------------------------------------
 \begin{description}[leftmargin=1.4em,style=nextline]
-\item[Source] Stanford HAI \emph{AI Index} reports (2024, 2025, 2026 editions);
-  underlying data assembled by \dataset{Quid}. Current-USD private investment.
-\item[Coverage / units] Three views are used: (i) the single-year cross-country
-  bar for the latest year, 2025; (ii) the US/Europe/China anchor-year path
-  2023--2025; (iii) the cumulative 2013--2025 sum. All in billions of current US
-  dollars of \emph{private} investment.
-\item[Why hardcoded, with provenance] The underlying series is proprietary
-  (Quid) and is \emph{not} exposed through any free API; the public form is the
-  figures printed in the report PDFs. The values are therefore entered as
-  documented constants in \code{01\_collect\_data.py}, each tagged with its
-  source figure number (e.g.\ AI Index 2026, Fig.~4.2.8), exactly the pattern the
-  sibling project uses for the ECB survey constants. They are the project's one
-  set of ``verify before publishing'' numbers; refresh them from the next report
-  edition.
+\item[Source] Epoch AI's curated ``notable models'' dataset, via AI Index 2026.
+  A model is attributed to a country if $\ge 1$ author is affiliated there
+  (double-counting possible); ``notable'' is a manual curation, so read it as a
+  pattern, not a census.
+\item[Series] Models by national affiliation, 2025 (Fig.~1.1.1/1.1.2: US 59,
+  China 35, South Korea 8, ``Europe'' 2); and by organisation, 2025 (Fig.~1.1.6:
+  OpenAI 20, Google 14, Alibaba 11, $\ldots$). DeepMind is counted under Google.
 \end{description}
 
-\begin{table}[htbp]\centering
-\caption{Private AI investment, US vs Europe vs China (US\$bn), the anchor years
-behind chart~A2. ``Europe'' is the AI Index regional line and \emph{includes the
-UK}; see the comparability note below. Each row is read from the edition shown.}
-\label{tab:invest}
-\renewcommand{\arraystretch}{1.15}
-\begin{tabular}{@{}lcccl@{}}
-\toprule
-year & United States & Europe & China & source edition \\
-\midrule
-2023 & 67.2  & 11.0 & 7.8  & AI Index 2024, Fig.~4.3.10 (line: EU+UK) \\
-2024 & 109.1 & 19.4 & 9.3  & AI Index 2025, Fig.~4.3.10 (line: Europe) \\
-2025 & 285.9 & 20.9 & 12.4 & AI Index 2026, Fig.~4.2.11 (line: Europe) \\
-\bottomrule
-\end{tabular}
-\end{table}
+% ----------------------------------------------------------------------------
+\subsection{Research: publications and citations}
+% ----------------------------------------------------------------------------
+\begin{description}[leftmargin=1.4em,style=nextline]
+\item[Source] AI Index 2026, Ch.~1.6 (OpenAlex-based). Regional \emph{shares} of
+  global AI publications (Fig.~1.6.6) and citations (Fig.~1.6.7), 2024.
+\item[Use here] Europe's share at each stage of the pipeline (citations $19.5\%$,
+  publications $11.1\%$, patent citations $4.2\%$, patents $3.0\%$, models
+  $\approx 2\%$) is assembled into the ``paradox'' chart. Patent shares are from
+  Ch.~1.7 (PATSTAT/EPO; China $74\%$, US $12\%$, Europe $3\%$).
+\end{description}
+
+% ----------------------------------------------------------------------------
+\subsection{Infrastructure: data centres and the chip supply chain}
+% ----------------------------------------------------------------------------
+\begin{description}[leftmargin=1.4em,style=nextline]
+\item[Source] Cloudscene via AI Index 2026 (Fig.~1.3.2): number of data centres
+  by country, 2025 (US 5{,}427, more than $10\times$ any other).
+\item[Ownership] The hardware stack is non-European: chips \emph{designed} by
+  Nvidia (US), \emph{fabricated} by TSMC (Taiwan, a near-single point of
+  dependency) and Samsung (Korea), with memory from SK Hynix/Samsung (Korea).
+  Counts do not capture facility size or capacity; the chart's caption says so.
+\end{description}
+
+% ----------------------------------------------------------------------------
+\subsection{Public money and talent}
+% ----------------------------------------------------------------------------
+\begin{description}[leftmargin=1.4em,style=nextline]
+\item[Public investment] AI Index 2026, Ch.~8.5. Cumulative 2013--24 government
+  AI spending: US $\approx$\$20.5\,bn (grants \$15.9 + contracts \$3.9 + OTAs
+  \$0.7; DoD $=73\%$ of contracts) vs European contracts $\approx$\$3.7\,bn
+  (UK \$1.6, Germany \$0.5, France \$0.3). \textbf{Caveat:} US and Europe are
+  measured differently (FPDS obligations vs TED contract ceilings) and presented
+  separately; the only like-for-like is contracts (US $\approx$\$4.6\,bn vs
+  Europe $\approx$\$3.7\,bn).
+\item[Talent] LinkedIn via AI Index 2026: net AI talent migration per 10{,}000
+  members, 2025 (Fig.~4.4.23), and talent concentration (Fig.~4.4.21). Context:
+  inflow of AI researchers/developers to the US fell $89\%$ since 2017.
+\end{description}
 
 % ----------------------------------------------------------------------------
 \subsection{Two comparability caveats that matter}\label{sec:caveats}
 % ----------------------------------------------------------------------------
-The two halves of the thesis are measured in \emph{incommensurable units}---a
-share of firms (adoption) and a flow of dollars (investment). They are
-deliberately \textbf{never combined into a single ratio}; they are two parallel
-lenses on the same gap, presented side by side. Beyond that, two specific caveats
-shape how the investment numbers may be read:
 \begin{enumerate}[label=(\roman*)]
-  \item \textbf{``Europe'' includes the United Kingdom.} The AI Index regional
-  time-series line bundles the UK with the EU (the 2024 edition literally labelled
-  it ``European Union and United Kingdom''), and the report publishes \emph{no}
-  clean EU-27 aggregate. For an EU-vs-UK split one must use the single-country
-  bars (chart~A), where the UK, France, Germany, Belgium and Sweden appear
-  separately.
-  \item \textbf{China is understated.} The private-investment figures exclude
-  state ``guidance funds''; an estimated US\$184\,bn of such funds went to Chinese
-  AI firms over 2000--2023. The US/China gap on \emph{private} money therefore
-  overstates the total-capital gap.
+  \item \textbf{Incommensurable units, kept separate.} Adoption (a share of
+  firms), investment (a flow of dollars), models (a count), and citations (a
+  share) are never combined into one index; they are parallel lenses on the same
+  gap. In particular, Eurostat firm adoption ($\approx 20\%$) and the McKinsey
+  ``organisational adoption'' figure ($88\%$) measure different things and must
+  be cited separately.
+  \item \textbf{``Europe'' is defined differently across sources.} In investment
+  it includes the UK; in models/research it is a regional aggregate; in data
+  centres and talent it appears as individual countries. Each chart's caption
+  states which.
 \end{enumerate}
 
 % ============================================================================
 \section{Descriptive evidence}\label{sec:descriptive}
 % ============================================================================
 
-The charts are intentionally simple; together they are the argument.
+The eleven charts are intentionally simple; in narrative order---fund, build,
+research, house, publicly fund, use, staff---they are the argument.
 
-\projfig{0.86}{A_investment_by_geo}{\textbf{Leg A --- the funding gap.} Private AI
-investment by geography, 2025 (Stanford AI Index; data: Quid). The United States
-bar runs off the field on purpose: at US\$285.9\,bn it is $\approx 23\times$
-China and $48\times$ the UK. The European leaders---the UK, France, Germany,
-Belgium, Sweden---are slivers by comparison.}
+\paragraph{The funding gap.}
+\projfig{0.82}{A_investment_by_geo}{\textbf{Leg A.} Private AI investment by
+geography, 2025. The US bar runs off the field on purpose: at US\$285.9\,bn it is
+$\approx 23\times$ China and $48\times$ the UK. Europe's leaders are slivers.}
 
-\projfig{0.74}{A2_investment_gap}{\textbf{Leg A --- the gap widening.} Private AI
-investment, US vs Europe vs China, 2023--2025 (Table~\ref{tab:invest}). The US
-curve goes vertical while Europe and China stay pinned near the floor; since 2024
-US private investment rose $\approx 160\%$, against $\approx 7\%$ for Europe.
-``Europe'' includes the UK, and pre-2024 is an earlier report vintage.}
+\projfig{0.72}{A2_investment_gap}{\textbf{Leg A.} US vs Europe vs China,
+2023--25. The US curve goes vertical (+$\approx 160\%$ since 2024) while Europe
+(+$\approx 7\%$) and China stay near the floor. ``Europe'' includes the UK;
+pre-2024 is an earlier report vintage.}
 
-\projfig{0.66}{B_adoption_by_country}{\textbf{Leg B / C --- the adoption map.}
-Share of enterprises (10+ employed) using $\ge 1$ AI technology, by EU country,
-2025 (Eurostat \dataset{isoc\_eb\_ai}). A north-west/south-east split: Denmark
-($42\%$) leads, Romania ($5\%$) trails---an eight-fold range. The dashed line is
-the EU-27 average; colour marks an editorial Nordic-and-Western vs
-Southern-and-Eastern grouping. Estonia sits in the East yet scores high.}
+\paragraph{The production gap.}
+\projfig{0.80}{C_models_by_country}{\textbf{Leg B.} Notable AI models by country,
+2025 (Epoch AI). The US released 59 and China 35; \emph{all of Europe} released
+2. Put beside the funding bar: US \$286\,bn buys 59 models; Europe's
+$\approx$\$21\,bn, two.}
 
-\projfig{0.74}{B2_adoption_trend}{\textbf{Leg B --- rising off a low base.} AI
-adoption over time, EU-27 (bold) plus a country spread. The EU rate roughly
-doubled in two years. The $2023\!\to\!2024$ segment is shaded because the survey
-definition was broadened then; the $2024\!\to\!2025$ rise is on the consistent
-definition.}
+\projfig{0.82}{C2_developers_by_origin}{\textbf{Leg B.} The organisations
+building frontier models, 2025, coloured by origin. Every one of the top twenty
+is American, Chinese, or (for LG) South Korean. \emph{No European company
+appears.}}
 
-\projfig{0.60}{B3_adoption_by_firmsize}{\textbf{Leg C --- the SME gap.} EU-27 AI
-adoption by firm size, 2025. Large firms ($55\%$) adopt at roughly three times the
-rate of small firms ($17\%$): AI is, so far, a big-firm technology.}
+\paragraph{The paradox: strong in science, absent in products.}
+\projfig{0.80}{D_europe_paradox}{\textbf{Leg C.} Europe's share of the global AI
+pipeline. Upstream (research) it is large---$19.5\%$ of citations, $11.1\%$ of
+publications; downstream (production) it collapses---$3\%$ of patents,
+$\approx 2\%$ of notable models. Europe does the science, not the product.}
+
+\paragraph{The physical backbone and the public purse.}
+\projfig{0.80}{E_datacenters_by_country}{\textbf{Leg B.} Data centres by country,
+2025 (Cloudscene). The US hosts 5{,}427, more than $10\times$ any other country;
+ownership of the chip stack (Nvidia/TSMC/SK Hynix) is likewise non-European.
+Counts ignore facility size.}
+
+\projfig{0.66}{F_public_investment}{\textbf{Leg A.} Cumulative government AI
+spending, 2013--24. Even public money is lopsided: US $\approx$\$20.5\,bn vs
+European contracts $\approx$\$3.7\,bn. The two are measured differently (caption);
+like-for-like contracts are US $\approx$\$4.6\,bn vs Europe $\approx$\$3.7\,bn.}
+
+\paragraph{The consumer side: Europe uses AI heavily.}
+\projfig{0.66}{B_adoption_by_country}{\textbf{Leg D/E.} AI adoption by EU country,
+2025 (Eurostat). A north-west/south-east split: Denmark $42\%$ leads, Romania
+$5\%$ trails---an eight-fold range around the $19.9\%$ EU-27 average.}
+
+\projfig{0.74}{B2_adoption_trend}{\textbf{Leg D.} AI adoption over time. The EU-27
+rate roughly doubled in two years. The $2023\to 2024$ segment is shaded because
+the survey definition was broadened; $2024\to 2025$ is clean.}
+
+\projfig{0.58}{B3_adoption_by_firmsize}{\textbf{Leg E.} EU-27 AI adoption by firm
+size, 2025. Large firms ($55\%$) adopt at roughly three times the small-firm rate
+($17\%$): the SME gap within Europe.}
+
+\paragraph{Talent.}
+\projfig{0.74}{G_talent_migration}{\textbf{Leg E.} Net AI talent migration, 2025
+(LinkedIn). Small hubs (Luxembourg) attract strongly, but Europe's big economies
+(Germany $+0.17$, Spain $+0.23$) barely do. The US still imports talent ($+1.2$)
+though its inflow fell $89\%$ since 2017.}
 
 % ============================================================================
 \section{Interpretation}\label{sec:interpretation}
@@ -321,53 +357,53 @@ rate of small firms ($17\%$): AI is, so far, a big-firm technology.}
 
 Putting the legs together:
 \begin{itemize}
-  \item \textbf{Leg A (investment).} Unambiguous and stark. The United States
-  does not merely lead private AI investment---it laps the field
-  (Fig.~\ref{fig:A_investment_by_geo}), and the lead is \emph{accelerating}
-  (Fig.~\ref{fig:A2_investment_gap}): US private AI investment more than doubled
-  in 2025 alone, while Europe barely moved. Cumulatively since 2013 the US has
-  attracted some US\$757\,bn against Europe's low tens of billions, and in
-  generative AI specifically US investment ($\approx$US\$164\,bn in 2025) dwarfs
-  all of Europe's \emph{total} AI investment several times over.
-  \item \textbf{Leg B (adoption).} The mirror image. European \emph{use} of AI is
-  climbing fast---the EU-27 rate roughly doubled in two years to $\approx 20\%$
-  (Fig.~\ref{fig:B2_adoption_trend}). Europe is a large, fast-growing customer for
-  a technology it overwhelmingly does not fund or build: a consumer, not a
-  producer.
-  \item \textbf{Leg C (within-Europe divides).} The using is uneven on two axes.
-  Geographically, a Nordic-and-Western core (Denmark $42\%$) runs far ahead of the
-  Southern and Eastern periphery (Romania $5\%$)
-  (Fig.~\ref{fig:B_adoption_by_country}). By size, large firms adopt at $\sim 3
-  \times$ the SME rate (Fig.~\ref{fig:B3_adoption_by_firmsize}). The single EU
-  ``adoption rate'' hides a wide distribution.
+  \item \textbf{Funding (A).} Unambiguous and widening. US private AI investment
+  more than doubled in 2025 to US\$285.9\,bn; cumulatively since 2013 the US has
+  attracted $\approx$US\$757\,bn against Europe's low tens of billions, and even
+  public AI money is lopsided.
+  \item \textbf{Production (B).} Starker still. Europe built two notable models in
+  2025, holds $3\%$ of AI patents, and places no company in the top twenty
+  developers; the data centres and the chip supply chain are American, Chinese,
+  Taiwanese, and Korean.
+  \item \textbf{Research (C).} The twist: Europe is genuinely strong upstream
+  ($19.5\%$ of AI citations, second only to China), and its papers come
+  disproportionately from academia. The science is European; the
+  commercialisation is not.
+  \item \textbf{Use (D) and divides (E).} Europe adopts AI heavily and fast---the
+  EU-27 firm rate doubled to $\approx 20\%$ in two years, and population-level use
+  is high---but unevenly (Denmark $42\%$ vs Romania $5\%$; large firms $\approx 3
+  \times$ SMEs), and its big economies attract little AI talent.
 \end{itemize}
-The synthesis is the headline: \emph{the EU is integrating AI into its economy
-while the economics of \emph{owning} that AI accrue almost entirely elsewhere.}
-The adoption gap is closing; the investment gap is not.
+The synthesis is the headline: \emph{Europe is integrating AI into its economy,
+and doing much of the underlying science, while the capital, the companies, and
+the infrastructure that \emph{own} AI accrue almost entirely elsewhere.} Europe's
+distinctive strengths---research and, separately, trust and regulation---sit
+upstream and sideways of the value chain, not at its commercial core. The
+adoption gap is closing; the production and funding gaps are not.
 
 % ============================================================================
 \section{Limitations and caveats}\label{sec:limits}
 % ============================================================================
 \begin{itemize}
-  \item \textbf{Series break (adoption).} The $2023\!\to\!2024$ jump partly
-  reflects a broadened survey definition, not pure growth; lead with the clean
-  $2024\!\to\!2025$ step or annotate the break.
-  \item \textbf{``Europe'' includes the UK (investment).} The AI Index publishes
-  no clean EU-27 investment aggregate; the regional line bundles the UK
-  (Sec.~\ref{sec:caveats}). EU-only figures must be built from the country bars.
-  \item \textbf{China understated.} Private-investment figures omit state guidance
-  funds (Sec.~\ref{sec:caveats}).
-  \item \textbf{Extensive, not intensive, adoption.} \code{E\_AI\_TANY} records
-  whether a firm uses \emph{any} AI, not how much value it derives; a high
-  adoption rate is not the same as deep deployment.
-  \item \textbf{Investment data are hand-entered.} Because no free API exposes the
-  Quid series, the investment numbers are constants read from the report PDFs and
-  must be re-verified and refreshed each report cycle.
-  \item \textbf{Editorial geographic grouping.} The Nordic-Western vs
-  Southern-Eastern colouring in leg~B is a simplification; the underlying
-  continuous adoption rate is the rigorous version.
+  \item \textbf{Adoption series break.} The $2023\to 2024$ jump partly reflects a
+  broadened survey definition; lead with $2024\to 2025$ or annotate the break.
+  \item \textbf{``Europe'' is not one thing.} It includes the UK in investment,
+  is a regional aggregate in models/research, and appears as individual countries
+  in data centres and talent (Sec.~\ref{sec:caveats}).
+  \item \textbf{``Notable models'' is a curation.} Epoch AI's set is manual and
+  author-affiliation-based (double-counting possible); read it as a pattern.
+  \item \textbf{Data-centre counts $\ne$ capacity.} Cloudscene counts facilities,
+  not size, power, or utilisation.
+  \item \textbf{Public-spend methodologies differ.} US (FPDS obligations) and
+  Europe (TED contract ceilings) are not directly comparable beyond contracts.
+  \item \textbf{Talent nuance.} The 2025 data show Europe's big economies as weak
+  \emph{magnets}, not a dramatic outflow; the sharp move is the $89\%$ fall in US
+  inflow. Do not overclaim a European ``brain drain.''
+  \item \textbf{Two adoption scales.} Eurostat firm adoption ($\approx 20\%$) and
+  McKinsey organisational adoption ($88\%$) measure different things.
   \item \textbf{Vintages.} The adoption series is pulled live and revised by
-  Eurostat; regenerate before citing any number.
+  Eurostat; the AI Index figures are hand-entered from a periodically updated
+  report. Regenerate and re-verify before citing any number.
 \end{itemize}
 
 % ============================================================================
@@ -377,8 +413,8 @@ The adoption gap is closing; the investment gap is not.
 
 \subsection{File tree}
 \begin{lstlisting}
-01_collect_data.py     # STEP 1  data collection -> data/*.csv
-02_make_figures.py     # STEP 2  figures         -> figures/*.png
+01_collect_data.py     # STEP 1  data collection -> data/*.csv (15 series)
+02_make_figures.py     # STEP 2  figures         -> figures/*.png (11 charts)
 run_all.sh             # pip install + run 01 -> 02 (classic Python, no venv)
 requirements.txt       # pinned dependencies
 data/                  # generated tidy CSVs
@@ -399,18 +435,26 @@ python 02_make_figures.py
 
 \subsection{Data dictionary (generated CSVs)}
 \begin{center}
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{@{}p{5.6cm} p{3.0cm} p{5.7cm}@{}}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}p{5.6cm} p{2.6cm} p{6.0cm}@{}}
 \toprule
 file & shape & contents \\
 \midrule
-\code{ai\_adoption\_by\_country.csv} & latest year & geo, value (\% firms), year \\
-\code{ai\_adoption\_trend.csv} & long panel & geo, year, value (\% firms) \\
-\code{ai\_adoption\_by\_firmsize.csv} & latest year & size\_emp, value (\%), year \\
-\code{ai\_investment\_by\_geo.csv} & 2025 & country, investment (US\$bn), year \\
+\code{ai\_adoption\_by\_country.csv} & latest yr & geo, value (\%), year \\
+\code{ai\_adoption\_trend.csv} & long panel & geo, year, value (\%) \\
+\code{ai\_adoption\_by\_firmsize.csv} & latest yr & size\_emp, value (\%), year \\
+\code{ai\_investment\_by\_geo.csv} & 2025 & country, investment (\$bn), year \\
 \code{ai\_investment\_us\_eu\_cn.csv} & 2023--25 & year, US, Europe, China, source \\
-\code{ai\_investment\_cumulative.csv} & 2013--25 sum & country, cumulative (US\$bn) \\
-\code{ai\_investment\_genai.csv} & 2025 & region, gen-AI investment (US\$bn) \\
+\code{ai\_investment\_cumulative.csv} & 2013--25 & country, cumulative (\$bn) \\
+\code{ai\_investment\_genai.csv} & 2025 & region, gen-AI (\$bn) \\
+\code{ai\_models\_by\_country.csv} & 2025 & country, models, year \\
+\code{ai\_models\_by\_org.csv} & 2025 & organization, models, country \\
+\code{europe\_share\_pipeline.csv} & latest & stage, Europe share (\%), kind, source \\
+\code{research\_by\_region.csv} & 2024 & region, publications \%, citations \% \\
+\code{datacenters\_by\_country.csv} & 2025 & country, data centres, year \\
+\code{public\_ai\_investment.csv} & 2013--24 & region, category, \$bn \\
+\code{talent\_concentration.csv} & 2025 & country, concentration (\%) \\
+\code{talent\_net\_migration.csv} & 2025 & country, net per 10k \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -418,8 +462,9 @@ file & shape & contents \\
 \vfill
 \noindent\rule{\linewidth}{0.4pt}\\[2pt]
 {\small The charts in this document come from a clean end-to-end run and are
-reproducible via \code{run\_all.sh}. The adoption series is pulled live and
-revised by Eurostat, and the investment figures are read from periodically
-updated reports; regenerate the data and re-compile before citing.}
+reproducible via \code{run\_all.sh}. The adoption series is pulled live from
+Eurostat; the production, investment, infrastructure, public-money, and talent
+figures are read from the Stanford AI Index 2026. Regenerate the data and
+re-compile before citing.}
 
 \end{document}
