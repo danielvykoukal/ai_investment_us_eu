@@ -22,7 +22,7 @@ python 02_make_figures.py        # writes figures/*.png
 
 ## Pipeline
 
-- **`01_collect_data.py`** — collects everything into `data/` (15 CSVs).
+- **`01_collect_data.py`** — collects everything into `data/` (16 CSVs).
   - *Adoption* (Eurostat `isoc_eb_ai`, pulled **live**, keyless): share of
     enterprises using ≥1 AI technology (`E_AI_TANY`, 10+ employed), by country,
     over time, and by firm size. Latest survey year auto-detected.
@@ -30,7 +30,7 @@ python 02_make_figures.py        # writes figures/*.png
     notable models & developers, research shares, data centres, talent. No free
     API exists (Quid/Epoch AI), so figures are **hardcoded from the report with
     their figure numbers** and must be re-verified/refreshed each report cycle.
-- **`02_make_figures.py`** — reads `data/` and draws `figures/` (11 charts). No
+- **`02_make_figures.py`** — reads `data/` and draws `figures/` (12 charts). No
   network.
 
 ## Figures
@@ -44,6 +44,7 @@ python 02_make_figures.py        # writes figures/*.png
 | `D_europe_paradox.png`        | Europe's share of the pipeline (research high, production low) |
 | `E_datacenters_by_country.png`| Data centres by country (+ chip-stack ownership note) |
 | `F_public_investment.png`     | Government AI spending, US vs Europe |
+| `B4_org_adoption_by_region.png` | Organisational AI use by region (Europe leads at 91%) |
 | `B_adoption_by_country.png`   | AI adoption by EU country (north-west vs south-east) |
 | `B2_adoption_trend.png`       | AI adoption over time, EU-27 + spread |
 | `B3_adoption_by_firmsize.png` | AI adoption by firm size (the SME gap) |

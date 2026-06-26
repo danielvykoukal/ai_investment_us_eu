@@ -149,9 +149,9 @@ Section~\ref{sec:overview} the analysis is descriptive.
 \textbf{Stage / script} & \textbf{Reads} & \textbf{Writes} \\
 \midrule
 \code{01\_collect\_data.py} & Eurostat (live API) + AI Index 2026 figures &
-  \code{data/*.csv} (15 tidy series) \\
+  \code{data/*.csv} (16 tidy series) \\
 \code{02\_make\_figures.py} & \code{data/*.csv} &
-  \code{figures/*.png} (11 charts, A--G) \\
+  \code{figures/*.png} (12 charts, A--G) \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -333,6 +333,12 @@ European contracts $\approx$\$3.7\,bn. The two are measured differently (caption
 like-for-like contracts are US $\approx$\$4.6\,bn vs Europe $\approx$\$3.7\,bn.}
 
 \paragraph{The consumer side: Europe uses AI heavily.}
+\projfig{0.78}{B4_org_adoption_by_region}{\textbf{Leg D.} Organisational AI use by
+region, 2023--25 (McKinsey; a recreation of AI Index Fig.~4.3.2). Europe leads the
+world in 2025 at $91\%$, ahead of North America ($90\%$). This is a broad,
+self-reported measure of (mostly large) organisations---\emph{not} comparable to
+the Eurostat firm rate in the next chart.}
+
 \projfig{0.66}{B_adoption_by_country}{\textbf{Leg D/E.} AI adoption by EU country,
 2025 (Eurostat). A north-west/south-east split: Denmark $42\%$ leads, Romania
 $5\%$ trails---an eight-fold range around the $19.9\%$ EU-27 average.}
@@ -370,9 +376,10 @@ Putting the legs together:
   disproportionately from academia. The science is European; the
   commercialisation is not.
   \item \textbf{Use (D) and divides (E).} Europe adopts AI heavily and fast---the
-  EU-27 firm rate doubled to $\approx 20\%$ in two years, and population-level use
-  is high---but unevenly (Denmark $42\%$ vs Romania $5\%$; large firms $\approx 3
-  \times$ SMEs), and its big economies attract little AI talent.
+  EU-27 firm rate doubled to $\approx 20\%$ in two years, population-level use is
+  high, and on the McKinsey organisational measure Europe actually \emph{leads the
+  world} ($91\%$ in 2025)---but unevenly (Denmark $42\%$ vs Romania $5\%$; large
+  firms $\approx 3\times$ SMEs), and its big economies attract little AI talent.
 \end{itemize}
 The synthesis is the headline: \emph{Europe is integrating AI into its economy,
 and doing much of the underlying science, while the capital, the companies, and
@@ -443,6 +450,7 @@ file & shape & contents \\
 \code{ai\_adoption\_by\_country.csv} & latest yr & geo, value (\%), year \\
 \code{ai\_adoption\_trend.csv} & long panel & geo, year, value (\%) \\
 \code{ai\_adoption\_by\_firmsize.csv} & latest yr & size\_emp, value (\%), year \\
+\code{org\_adoption\_by\_region.csv} & 2023--25 & region, 2023, 2024, 2025 (\% orgs) \\
 \code{ai\_investment\_by\_geo.csv} & 2025 & country, investment (\$bn), year \\
 \code{ai\_investment\_us\_eu\_cn.csv} & 2023--25 & year, US, Europe, China, source \\
 \code{ai\_investment\_cumulative.csv} & 2013--25 & country, cumulative (\$bn) \\

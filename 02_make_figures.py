@@ -292,6 +292,51 @@ def chart_B3_firmsize(fs):
 
 
 # ----------------------------------------------------------------------------
+# B4) Organisational AI adoption by region (McKinsey) — recreation of Fig 4.3.2
+# ----------------------------------------------------------------------------
+def chart_B4_org_adoption(df):
+    """% of organisations using AI in >=1 function, by region, 2023-25 (grouped
+    horizontal bars). Europe leads the world in 2025."""
+    long_labels = {
+        "Greater China": "Greater China\n(incl. HK, Taiwan, Macau)",
+        "Developing markets": "Developing markets\n(incl. India, C/S America, MENA)",
+    }
+    regions = list(df["region"])
+    n = len(regions)
+    ypos = np.arange(n)[::-1]              # "All geographies" at the top
+    h = 0.26
+    years = ["2025", "2024", "2023"]        # top-to-bottom within each group
+    colors = {"2025": "#4a78b0", "2024": "#b07cc6", "2023": "#2f7d7d"}
+    offs = {"2025": +h, "2024": 0.0, "2023": -h}
+
+    fig, ax = plt.subplots(figsize=(9.5, 6.6))
+    for yr in years:
+        vals = df[yr].to_numpy()
+        ax.barh(ypos + offs[yr], vals, height=h, color=colors[yr], label=yr, zorder=3)
+        for y, v in zip(ypos, vals):
+            ax.text(v + 1, y + offs[yr], f"{v}%", va="center", ha="left",
+                    fontsize=8, color=colors[yr], fontweight="bold")
+    ax.set_yticks(ypos)
+    ax.set_yticklabels([long_labels.get(r, r) for r in regions])
+    for lab in ax.get_yticklabels():       # draw the eye to the headline region
+        if lab.get_text() == "Europe":
+            lab.set_fontweight("bold")
+    ax.set_xlim(0, 104)
+    ax.set_xlabel("% of respondents")
+    ax.set_title("Europe now leads the world in organisational AI use\n"
+                 "AI use by organizations in the world, 2023–25", fontweight="bold")
+    ax.legend(loc="lower right", frameon=True, framealpha=0.9, fontsize=9)
+    fig.text(0.01, 0.005, "Source: McKinsey & Company via Stanford AI Index 2026 "
+             "(Fig 4.3.2). Self-reported ‘AI in ≥1 function’ — a broader measure "
+             "than Eurostat firm adoption (~20%); cite separately.",
+             fontsize=7.5, style="italic", color="#555")
+    fig.tight_layout()
+    fig.savefig(os.path.join(FIG, "B4_org_adoption_by_region.png"), bbox_inches="tight")
+    plt.close(fig)
+    print("  saved figures/B4_org_adoption_by_region.png")
+
+
+# ----------------------------------------------------------------------------
 # C) The production gap: notable AI models by country
 # ----------------------------------------------------------------------------
 def chart_C_models(df):
@@ -536,6 +581,7 @@ def main():
         print(f"  FAILED: {e}")
 
     for tag, fname, fn in [
+        ("B4", "org_adoption_by_region.csv", chart_B4_org_adoption),
         ("C", "ai_models_by_country.csv", chart_C_models),
         ("C2", "ai_models_by_org.csv", chart_C2_developers),
         ("D", "europe_share_pipeline.csv", chart_D_paradox),

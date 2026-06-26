@@ -317,6 +317,21 @@ TALENT_NET_MIGRATION_2025 = {  # Fig 4.4.23 (top 15 net inflows), per 10k member
     "Austria": 0.90, "Cyprus": 0.62, "Denmark": 0.45, "Spain": 0.23, "Germany": 0.17,
 }
 
+# Organisational AI adoption by region (McKinsey via AI Index 2026, Fig 4.3.2):
+# % of respondents whose organisation uses AI in >=1 business function.
+# Europe leads the world at 91% in 2025. NOTE: a broad, self-reported measure of
+# (mostly large) organisations -- NOT comparable to Eurostat's firm-level
+# adoption (~20%); the two are cited separately.
+#   region, 2023, 2024, 2025
+ORG_ADOPTION_BY_REGION = [
+    ("All geographies", 55, 78, 88),
+    ("Asia-Pacific", 58, 72, 82),
+    ("Europe", 57, 80, 91),
+    ("North America", 61, 82, 90),
+    ("Greater China", 48, 75, 88),
+    ("Developing markets", 49, 77, 88),
+]
+
 
 def write_aiindex_extras():
     """Materialise the production/infrastructure/research/public/talent figures."""
@@ -351,9 +366,12 @@ def write_aiindex_extras():
                   "net_per_10k": list(TALENT_NET_MIGRATION_2025.values())}) \
       .to_csv(os.path.join(DATA, "talent_net_migration.csv"), index=False)
 
+    pd.DataFrame(ORG_ADOPTION_BY_REGION, columns=["region", "2023", "2024", "2025"]) \
+      .to_csv(os.path.join(DATA, "org_adoption_by_region.csv"), index=False)
+
     us_models = sum(v for _, v, c in MODELS_BY_ORG_2025 if c == "United States")
     cn_models = sum(v for _, v, c in MODELS_BY_ORG_2025 if c == "China")
-    print("  wrote 8 AI-Index extras CSVs (VERIFY before publishing)")
+    print("  wrote 9 AI-Index extras CSVs (VERIFY before publishing)")
     print(f"    models 2025: US 59 / China 35 / Europe 2; top-20 orgs are "
           f"{us_models} US + {cn_models} China + rest, zero EU")
     us_public = sum(PUBLIC_AI_US.values())
@@ -361,6 +379,7 @@ def write_aiindex_extras():
     print(f"    data centers: US {DATACENTERS_2025['United States']:,} vs "
           f"Germany {DATACENTERS_2025['Germany']}; "
           f"public AI: US ~${us_public:.1f}bn vs Europe ~${eu_public:.1f}bn")
+    print("    org adoption 2025 (McKinsey): Europe leads at 91% (N.America 90, China 88)")
 
 
 # ----------------------------------------------------------------------------
